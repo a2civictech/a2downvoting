@@ -41,13 +41,13 @@ if [ ! -d cachedir/$monyear ]; then
 fi
 
 if [ ! -s cachedir/$monyear/indexprecinctreport.html ]; then
-	wget -O cachedir/$monyear/indexprecinctreport.html https://electionresults.ewashtenaw.org/electionreporting/$monyear/indexprecinctreport.html
+	wget -q -O cachedir/$monyear/indexprecinctreport.html https://electionresults.ewashtenaw.org/electionreporting/$monyear/indexprecinctreport.html
 fi
 
 	grep 'City of Ann Arbor' cachedir/$monyear/indexprecinctreport.html | sed -e 's/.*<a href=.//' -e 's/.>.*//' | while read file; do
 
 	if [ ! -s cachedir/$monyear/$file ]; then
-		wget -O cachedir/$monyear/$file https://electionresults.ewashtenaw.org/electionreporting/$monyear/$file
+		wget -q -O cachedir/$monyear/$file https://electionresults.ewashtenaw.org/electionreporting/$monyear/$file
 	fi
 	wardscrape cachedir/$monyear/$file
 done | awk '
