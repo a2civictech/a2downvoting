@@ -7,6 +7,7 @@ where mon is u month -- usually may, aug, or nov -- and year is four-digit year
 example: cityscrape nov 2018
 
 cityscrape retrieves and caches web pages from the county election site.  the size of the cache for a given election is less than 2 MB.
+running cityscrape might take a half minute or so the first time for a given election.  subsequent runs are instant-ish.
 
 cityscrape reports:
 	Registered Voters
