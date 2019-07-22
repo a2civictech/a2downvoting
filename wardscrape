@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # usage wardscrape file
-# where file is the scraped body of an election report
+# where file is the html body of an election report
 
 cat $1 | tr -d '\011\015,' | sed -e 's/<[^>]*>/ /g' -e 's/  */ /g' -e 's/^ //' -e '/^ *$/d' | awk '
 
