@@ -52,7 +52,7 @@ fi
 	wardscrape cachedir/$monyear/$file
 done | awk '
 
-BEGIN {verbose=2}
+BEGIN {verbose=0}
 NF == 13 {
 	Ward = $2; Precinct = $4; WPRegisteredVoters = $7; WPBallotsCast = $10; WPVoterTurnout=$13
 
@@ -78,15 +78,12 @@ END {
 	print "Registered-Voters", TotalRegisteredVoters
 	printf("Ballots-Cast %d %2.1f%%\n", TotalBallotsCast, 100 * TotalBallotsCast / TotalRegisteredVoters)
 
-	if (verbose == 2) {
-		for (i in votes) {
-			if (wards[i] == WardCount)
-				print i, votes[i]
-		}
+	for (i in votes) {
+		if (wards[i] == WardCount)	# city-wide races only
+			print i, votes[i]
 	}
 
-
-	if (verbose > 2) {
+	if (verbose > 0) {
 		print; "Not Counted"
 		for (i in votes) {
 			if (wards[i] == WardCount)
