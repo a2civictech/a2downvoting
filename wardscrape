@@ -1,0 +1,79 @@
+#!/bin/sh
+
+# usage wardscrape file
+# where file is the scraped body of an election report
+
+cat $1 | tr -d '\011\015,' | sed -e 's/<[^>]*>/ /g' -e 's/  */ /g' -e 's/^ //' -e '/^ *$/d' | awk '
+
+# Summary lines
+NR == 4 { Ward = $6; Precinct = $8}
+NR == 7 {RegisteredVoters = $1}
+NR == 9 {BallotsCast = $1}
+NR == 11 {VoterTurnout = $1}
+NR == 13 {print "Ward", Ward, "Precinct", Precinct, "Registered Voters", RegisteredVoters, "Ballots Cast", BallotsCast, "Voter Turnout", VoterTurnout}
+NR < 13 {next}
+
+/Vote For / {					# new race starting so print summary of prior race
+	if (ThisRace) {				# first race has no prior race
+		if (partisan) 
+			ThisRace = ThisRace "@"
+		if ((Candidates - WriteIns) == 1)
+			ThisRace = ThisRace "+"
+		results[ThisRace] = RaceSum
+	}
+
+	ThisRace = ""
+	partisan = 0
+}
+
+# Race we care about
+/Vote For 1 / {
+	skipping = 0
+	RaceSum = 0
+	Candidates = 0
+	WriteIns = 0
+
+	for (i = 1; i <= NF-5; i++)	# remove spaces from race name
+		ThisRace = ThisRace "=" $i 
+	next
+}
+
+# Race we do not care about
+/Vote For / {
+	skipping = 1
+}
+
+# Skip until we start to care again
+skipping {next}
+
+
+# sum up the vote counts
+
+#is it a partisan race?  look for a DEM or a REP
+/(DEM)/ {partisan = 1}
+/(REP)/ {partisan = 1}
+/write-in/ {WriteIns++}
+
+
+# add up the votes here
+{
+	field = NF - 1
+	RaceSum += $field
+	Candidates++
+	next
+}
+	
+END {				# output for the final race
+	if (ThisRace) {
+		if (partisan) 
+			ThisRace = ThisRace "@"
+		if ((Candidates - WriteIns) == 1)
+			ThisRace = ThisRace "+"
+		results[ThisRace] = RaceSum
+	}
+
+	for (i in results)
+		print i, results[i]
+}
+
+'
