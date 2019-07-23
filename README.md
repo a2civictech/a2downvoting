@@ -1,4 +1,4 @@
-# a2voting
+# a2downvoting
 
 cityscrape: summarize the vote totals in a recent ann arbor election.
 
