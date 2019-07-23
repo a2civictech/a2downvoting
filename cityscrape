@@ -67,7 +67,12 @@ fi
 	wardscrape cachedir/$monyear/$file
 done | awk '
 
-BEGIN {verbose=0}
+BEGIN {
+	# for debugging.  if you make verbose non-zero, you should get rid of the sort post-processing for it to make sense
+
+	verbose = 0
+}
+
 
 NF == 13 {
 	Ward = $2; Precinct = $4; WPRegisteredVoters = $7; WPBallotsCast = $10; WPVoterTurnout=$13
@@ -91,7 +96,6 @@ NF != 2 {
 
 	wards[$1]++
 	votes[$1] += $2
-
 }
 
 END {
@@ -109,11 +113,16 @@ END {
 		}
 
 		if (verbose > 0) {
+			print "\n"
+			print WardCount, "wards"
 			print "Not Counted"
 			for (i in votes) {
-				if (wards[i] == WardCount)
-					print i, votes[i]
+				if (wards[i] != WardCount)
+					print i, votes[i], wards[i]
 			}
+		}
+
+		if (verbose > 1) {
 			for (i in RegisteredVoters)
 				print "Ward", i, RegisteredVoters[i]
 		}
