@@ -37,5 +37,7 @@ combine results from primaries, whcih can be recognized as races starting with o
 
 (followed by a space)
 
+this will fix a bug in the counting of partisan primaries
+
 
 it is possible to decode elections earlier than aug 2013 ... but maybe it's not worth it.
