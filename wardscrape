@@ -74,4 +74,4 @@ END {				# output for the final race (just like above)
 # output time!
 	for (i in results)
 		print i, results[i]
-}
+}'
