@@ -6,7 +6,7 @@ usage: cityscrape mon year
 
 where mon is a month -- usually may, aug, or nov -- and year is four-digit year
 
-example: cityscrape nov 2018
+example: cityscrape aug 2013  # also this is the earliest date that works
 
 cityscrape retrieves and caches web pages from the washtenaw county election site.  (the size of the cache for a given election is less than 2 MB.)  output is sorted by vote total.
 
@@ -22,4 +22,20 @@ cityscrape also reports if a race is partisan, and if it was unopposed (except f
 sometimes there are no city-wide races, e.g., nov 2015
 
 
-wardscrape is a worker script that converts a specific precinct and ward html report into text.
+wardscrape is a worker script that converts the html for a specific precinct + ward report into text.
+
+
+###
+
+TODO
+
+###
+
+combine results from primaries, whcih can be recognized as races starting with one of the following words
+
+	DEM, REP, LIB, D, R, L
+
+(followed by a space)
+
+
+it is possible to decode elections earlier than aug 2013 ... but maybe it's not worth it.
