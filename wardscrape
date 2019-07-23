@@ -13,28 +13,33 @@ NR == 11 {VoterTurnout = $1}
 NR == 13 {print "Ward", Ward, "Precinct", Precinct, "Registered Voters", RegisteredVoters, "Ballots Cast", BallotsCast, "Voter Turnout", VoterTurnout}
 NR < 13 {next}
 
-/Vote For / {						# new race starting so print summary of prior race
-	if (ThisRace) {					# first race has no prior race
-		if (partisan) 
-			ThisRace = ThisRace "@"		# kludge to let the downstream know this race is partisan
-		if ((Candidates - WriteIns) == 1)
-			ThisRace = ThisRace "+"		# kludge to let the downstream know this race is unopposed
-		results[ThisRace] = RaceSum
-	}
+/Vote For / {						# new race starting so output summary of prior race
+	if (ThisRace) {					# unless this is the first race, i.e.,ThisRace has never been set
 
-	ThisRace = ""
-	partisan = 0
+		RaceTally[ThisRace]++			# how many times we have seen ThisRace reported
+		if ((Candidates - WriteIns) == 1)
+			Unopposed[ThisRace]++		# how many times ThisRace appears to be unopposed
+
+		results[ThisRace] = RaceSum + 0		# sadly, this coercion seems to be necessary in a wierd
+							# special case in which no votes at all are displayed by the county
+							# see, e.g., aug 2014, REP C Ann Arb 2-2 Delegate 
+							# (TBH i dont entirely understand this)
+	}
 }
 
 # Race we care about
 /Vote For 1 / {
+
+	# new race that we care about
 	skipping = 0
-	RaceSum = 0
 	Candidates = 0
 	WriteIns = 0
+	ThisRace = ""
 
 	for (i = 1; i <= NF-5; i++)	# remove spaces from race name
 		ThisRace = ThisRace "=" $i 
+
+	RaceSum = results[ThisRace]		# a race can show up more than once :shrug emoji: so keep a running tally
 	next
 }
 
@@ -49,8 +54,8 @@ skipping {next}
 # look at the vote counts
 
 #is it a partisan race?  look for a DEM or a REP
-/(DEM)/ {partisan = 1}
-/(REP)/ {partisan = 1}
+/(DEM)/ {IsPartisan[ThisRace] = 1}
+/(REP)/ {IsPartisan[ThisRace] = 1}
 
 /write-in/ {WriteIns++}
 
@@ -62,16 +67,23 @@ skipping {next}
 	next
 }
 	
-END {				# output for the final race (just like above)
+END {				# output for the final race (just like above, q.v. for comments)
 	if (ThisRace) {
-		if (partisan) 
-			ThisRace = ThisRace "@"
+		RaceTally[ThisRace]++
 		if ((Candidates - WriteIns) == 1)
-			ThisRace = ThisRace "+"
-		results[ThisRace] = RaceSum
+			Unopposed[ThisRace]++
+		results[ThisRace] = RaceSum + 0
 	}
 
 # output time!
-	for (i in results)
-		print i, results[i]
+	for (i in results) {
+		race = i
+		if (IsPartisan[i] == 1)
+			race = race "@"			# kludge to let the downstream script know this race is partisan
+
+		if (Unopposed[i] == RaceTally[i])	# race is unopposed if every time we saw it, it was unopposed
+			race = race "+"			# kludge to let the downstream know this race is unopposed
+
+		print race, results[i]
+	}
 }'
