@@ -29,6 +29,12 @@ case $2 in
 		usage ;;
 esac
 
+if [ $2 -lt 2013 -o \( $2 -eq 2013 -a $1 != "nov" \) ]; then
+	echo cityscrape can\'t process elections prior to nov 2013 2>&1
+	exit 1
+fi
+### end args checking
+
 monyear=$1$2
 
 # set up the cache drectory
@@ -41,8 +47,11 @@ if [ ! -d cachedir/$monyear ]; then
 fi
 
 if [ ! -s cachedir/$monyear/indexprecinctreport.html ]; then
-	### TODO: if exit status is non-zero, mon year is invalid so complain and exit
 	wget -q -O cachedir/$monyear/indexprecinctreport.html https://electionresults.ewashtenaw.org/electionreporting/$monyear/indexprecinctreport.html
+	if [ $? != 0 ]; then
+		echo can\'t find $1 $2 election >&2
+		exit 1
+	fi
 fi
 
 	grep 'City of Ann Arbor' cachedir/$monyear/indexprecinctreport.html | sed -e 's/.*<a href=.//' -e 's/.>.*//' | while read file; do
@@ -50,11 +59,16 @@ fi
 	if [ ! -s cachedir/$monyear/$file ]; then
 		### TODO (?): if exit status is nonzero, some kind of internal error, so apologize and exit
 		wget -q -O cachedir/$monyear/$file https://electionresults.ewashtenaw.org/electionreporting/$monyear/$file
+		if [ $? != 0 ]; then
+			echo cityscrape internal error: can\'t cache file for $1 $2 >&2
+			exit 1
+		fi
 	fi
 	wardscrape cachedir/$monyear/$file
 done | awk '
 
 BEGIN {verbose=0}
+
 NF == 13 {
 	Ward = $2; Precinct = $4; WPRegisteredVoters = $7; WPBallotsCast = $10; WPVoterTurnout=$13
 
@@ -66,33 +80,43 @@ NF == 13 {
 	next
 }
 
-NF != 2 { print; abort() }
+NF != 2 {
+	print "cityscrape internal error: NF != 2 on line: " $0
+	abort()			# abort is undefined so this will definitely cause an exceptional exit
+}
 
 # total the votes from the wards
 {
+	### TODO combine primaries, which start with "DEM " or "D " or "REP " or ...  into a single report
+
 	wards[$1]++
 	votes[$1] += $2
+
 }
-	
 
 END {
-	
-	print "Registered-Voters", TotalRegisteredVoters
-	printf("Ballots-Cast %d %2.1f%%\n", TotalBallotsCast, 100 * TotalBallotsCast / TotalRegisteredVoters)
+	if (TotalBallotsCast != 0) {
+		print "Registered=Voters", TotalRegisteredVoters
+		if (TotalRegisteredVoters != 0)			# county data is not perfect
+			printf("Ballots=Cast %d %2.1f%%\n", TotalBallotsCast, 100 * TotalBallotsCast / TotalRegisteredVoters)
+		else
+			print "Ballots=Cast", TotalBallotsCast, "0%"
+		fi
 
-	for (i in votes) {
-		if (wards[i] == WardCount)	# city-wide races only
-			print i, votes[i]
-	}
-
-	if (verbose > 0) {
-		print "Not Counted"
 		for (i in votes) {
-			if (wards[i] == WardCount)
+			if (wards[i] == WardCount)	# city-wide races only
 				print i, votes[i]
 		}
-		for (i in RegisteredVoters)
-			print "Ward", i, RegisteredVoters[i]
+
+		if (verbose > 0) {
+			print "Not Counted"
+			for (i in votes) {
+				if (wards[i] == WardCount)
+					print i, votes[i]
+			}
+			for (i in RegisteredVoters)
+				print "Ward", i, RegisteredVoters[i]
+		}
 	}
 }
 
