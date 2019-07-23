@@ -67,11 +67,6 @@ fi
 	wardscrape cachedir/$monyear/$file
 done | awk '
 
-BEGIN {
-	# for debugging.  if you make verbose non-zero, you should get rid of the sort post-processing for it to make sense
-
-	verbose = 0
-}
 
 
 NF == 13 {
@@ -86,7 +81,7 @@ NF == 13 {
 }
 
 NF != 2 {
-	print "cityscrape internal error: NF != 2 on line: " $0
+	print "cityscrape internal error: NF != 2 on line: " NF, $0, "Ward", Ward, "Precinct", Precinct
 	abort()			# abort is undefined so this will definitely cause an exceptional exit
 }
 
@@ -112,6 +107,7 @@ END {
 				print i, votes[i]
 		}
 
+		# debugging.  if you make verbose non-zero, you probably want to temporarily get rid of the sort post-processing
 		if (verbose > 0) {
 			print "\n"
 			print WardCount, "wards"
