@@ -13,12 +13,12 @@ NR == 11 {VoterTurnout = $1}
 NR == 13 {print "Ward", Ward, "Precinct", Precinct, "Registered Voters", RegisteredVoters, "Ballots Cast", BallotsCast, "Voter Turnout", VoterTurnout}
 NR < 13 {next}
 
-/Vote For / {					# new race starting so print summary of prior race
-	if (ThisRace) {				# first race has no prior race
+/Vote For / {						# new race starting so print summary of prior race
+	if (ThisRace) {					# first race has no prior race
 		if (partisan) 
-			ThisRace = ThisRace "@"
+			ThisRace = ThisRace "@"		# kludge to let the downstream know this race is partisan
 		if ((Candidates - WriteIns) == 1)
-			ThisRace = ThisRace "+"
+			ThisRace = ThisRace "+"		# kludge to let the downstream know this race is unopposed
 		results[ThisRace] = RaceSum
 	}
 
@@ -46,16 +46,15 @@ NR < 13 {next}
 # Skip until we start to care again
 skipping {next}
 
-
-# sum up the vote counts
+# look at the vote counts
 
 #is it a partisan race?  look for a DEM or a REP
 /(DEM)/ {partisan = 1}
 /(REP)/ {partisan = 1}
+
 /write-in/ {WriteIns++}
 
-
-# add up the votes here
+# sum up the votes and candidates
 {
 	field = NF - 1
 	RaceSum += $field
@@ -63,7 +62,7 @@ skipping {next}
 	next
 }
 	
-END {				# output for the final race
+END {				# output for the final race (just like above)
 	if (ThisRace) {
 		if (partisan) 
 			ThisRace = ThisRace "@"
@@ -72,8 +71,7 @@ END {				# output for the final race
 		results[ThisRace] = RaceSum
 	}
 
+# output time!
 	for (i in results)
 		print i, results[i]
 }
-
-'
