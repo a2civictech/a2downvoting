@@ -5,18 +5,20 @@
 
 cat $1 | tr -d '\011\015,' | sed -e 's/<[^>]*>/ /g' -e 's/  */ /g' -e 's/^ //' -e '/^ *$/d' | awk '
 
-# Summary lines
+# Precinct+Ward summary in first 12 lines
 NR == 4 { Ward = $6; Precinct = $8}
 NR == 7 {RegisteredVoters = $1}
 NR == 9 {BallotsCast = $1}
 NR == 11 {VoterTurnout = $1}
 NR == 13 {print "Ward", Ward, "Precinct", Precinct, "Registered Voters", RegisteredVoters, "Ballots Cast", BallotsCast, "Voter Turnout", VoterTurnout}
+
 NR < 13 {next}
 
-/Vote For / {						# new race starting so output summary of prior race
-	if (ThisRace) {					# unless this is the first race, i.e.,ThisRace has never been set
+# new race starts with "Vote for "
+/Vote For / {						# first, output summary of prior race ...
+	if (ThisRace) {					# ... unless this is the first race, i.e.,ThisRace has never been set
 
-		RaceTally[ThisRace]++			# how many times we have seen ThisRace reported
+		RaceTally[ThisRace]++			# how many times we have seen ThisRace reported.  it can be more than 1 #alas
 		if ((Candidates - WriteIns) == 1)
 			Unopposed[ThisRace]++		# how many times ThisRace appears to be unopposed
 
@@ -36,8 +38,13 @@ NR < 13 {next}
 	WriteIns = 0
 	ThisRace = ""
 
-	for (i = 1; i <= NF-5; i++)	# remove spaces from race name
-		ThisRace = ThisRace "=" $i 
+	# combine primaries, whose first field is "D" or "R" or "DEM" or "REP", into a single race
+	firstfield = 1
+	if ($1 == "DEM" || $1 == "REP" || $1 == "D" || $1 == "R")	# skip first field if it is a party designator
+		firstfield = 2
+
+	for (i = firstfield ; i <= NF-5; i++)	# last 5 fields are data, the restb are the name of the race. replace spaces with "=".
+		ThisRace = ThisRace $i "="
 
 	RaceSum = results[ThisRace]		# a race can show up more than once :shrug emoji: so keep a running tally
 	next

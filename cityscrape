@@ -85,18 +85,18 @@ NF != 2 {
 	abort()			# abort is undefined so this will definitely cause an exceptional exit
 }
 
+
 # total the votes from the wards
 {
-	### TODO combine primaries, which start with "DEM " or "D " or "REP " or ...  into a single report
-
-	wards[$1]++
-	votes[$1] += $2
+	wards[$1]++		# count the number of wards this races was seen in
+	votes[$1] += $2		# count the votes
 }
 
 END {
 	if (TotalBallotsCast != 0) {
 		print "Registered=Voters", TotalRegisteredVoters
-		if (TotalRegisteredVoters != 0)			# county data is not perfect
+
+		if (TotalRegisteredVoters != 0)			# try not to divide by zero (county data is not perfect #alas)
 			printf("Ballots=Cast %d %2.1f%%\n", TotalBallotsCast, 100 * TotalBallotsCast / TotalRegisteredVoters)
 		else
 			print "Ballots=Cast", TotalBallotsCast, "0%"
@@ -125,6 +125,6 @@ END {
 	}
 }
 
-' | sort -nr -k2 | sed -e 's/^=//' -e 's/=/ /g' -e 's/@/ partisan/' -e 's/+/ unopposed/'
+' | sort -nr -k2 | sed -e 's/=/ /g' -e 's/@/ partisan/' -e 's/+/ unopposed/'
 
 exit

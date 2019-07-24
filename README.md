@@ -26,18 +26,7 @@ wardscrape is a worker script that converts the html for a specific precinct + w
 
 
 ###
-
 TODO
-
 ###
-
-combine results from primaries, whcih can be recognized as races starting with one of the following words
-
-	DEM, REP, LIB, D, R, L
-
-(followed by a space)
-
-this will fix a bug in the counting of partisan primaries
-
 
 it is possible to decode elections earlier than aug 2013 ... but maybe it's not worth it.
