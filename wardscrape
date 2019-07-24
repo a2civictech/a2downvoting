@@ -64,7 +64,7 @@ skipping {next}
 /(DEM)/ {IsPartisan[ThisRace] = 1}
 /(REP)/ {IsPartisan[ThisRace] = 1}
 
-/write-in/ {WriteIns++}
+/[Ww]rite-[Ii]n/ {WriteIns++}
 
 # sum up the votes and candidates
 {
@@ -88,8 +88,12 @@ END {				# output for the final race (just like above, q.v. for comments)
 		if (IsPartisan[i] == 1)
 			race = race "@"			# kludge to let the downstream script know this race is partisan
 
-		if (Unopposed[i] == RaceTally[i])	# race is unopposed if every time we saw it, it was unopposed
-			race = race "+"			# kludge to let the downstream know this race is unopposed
+		if (Unopposed[i] == RaceTally[i]) {	# race is unopposed if every time we saw it, it was unopposed
+			if (verbose == 0)		
+				continue	# not really interested in unopposed races
+			race = race "+"		# kludge to let the downstream know this race is unopposed
+		}
+			
 
 		print race, results[i]
 	}
