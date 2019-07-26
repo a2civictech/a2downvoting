@@ -19,8 +19,8 @@ NR < 13 {next}
 	if (ThisRace) {					# ... unless this is the first race, i.e.,ThisRace has never been set
 
 		RaceTally[ThisRace]++			# how many times we have seen ThisRace reported.  it can be more than 1 #alas
-		if ((Candidates - WriteIns) == 1)
-			Unopposed[ThisRace]++		# how many times ThisRace appears to be unopposed
+		if ((Candidates - WriteIns) <= 1)	# sometimes there are no candidates, sometimes only write-ins
+			Unopposed[ThisRace]++		# keep track of how many times ThisRace appears to be unopposed
 
 		results[ThisRace] = RaceSum + 0		# sadly, this coercion seems to be necessary in a wierd
 							# special case in which no votes at all are displayed by the county
