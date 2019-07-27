@@ -15,17 +15,12 @@ NR == 13 {print "Ward", Ward, "Precinct", Precinct, "Registered Voters", Registe
 NR < 13 {next}
 
 # new race starts with "Vote for "
-/Vote For / {						# first, output summary of prior race ...
+/Vote For / {						# first, clean up from prior race
 	if (ThisRace) {					# ... unless this is the first race, i.e.,ThisRace has never been set
 
 		RaceTally[ThisRace]++			# how many times we have seen ThisRace reported.  it can be more than 1 #alas
 		if ((Candidates - WriteIns) <= 1)	# sometimes there are no candidates, sometimes only write-ins
 			Unopposed[ThisRace]++		# keep track of how many times ThisRace appears to be unopposed
-
-		results[ThisRace] = RaceSum + 0		# sadly, this coercion seems to be necessary in a wierd
-							# special case in which no votes at all are displayed by the county
-							# see, e.g., aug 2014, REP C Ann Arb 2-2 Delegate 
-							# (TBH i dont entirely understand this)
 	}
 }
 
@@ -36,17 +31,15 @@ NR < 13 {next}
 	skipping = 0
 	Candidates = 0
 	WriteIns = 0
-	ThisRace = ""
 
 	# combine primaries, whose first field is "D" or "R" or "DEM" or "REP", into a single race
 	firstfield = 1
 	if ($1 == "DEM" || $1 == "REP" || $1 == "D" || $1 == "R")	# skip first field if it is a party designator
 		firstfield = 2
 
-	for (i = firstfield ; i <= NF-5; i++)	# last 5 fields are data, the restb are the name of the race. replace spaces with "=".
-		ThisRace = ThisRace $i "="
-
-	RaceSum = results[ThisRace]		# a race can show up more than once :shrug emoji: so keep a running tally
+	ThisRace = $firstfield
+	for (i = firstfield + 1; i <= NF-5; i++)	# last 5 fields are data, the rest are the name of the race. replace spaces with "=".
+		ThisRace = ThisRace "=" $i
 	next
 }
 
@@ -68,18 +61,17 @@ skipping {next}
 
 # sum up the votes and candidates
 {
-	field = NF - 1
-	RaceSum += $field
+	field = NF - 1			# this is the number of votes
+	results[ThisRace] += $field
 	Candidates++
 	next
 }
 	
-END {				# output for the final race (just like above, q.v. for comments)
+END {				# clean up the final race (just like above, q.v. for comments)
 	if (ThisRace) {
 		RaceTally[ThisRace]++
-		if ((Candidates - WriteIns) == 1)
+		if ((Candidates - WriteIns) <= 1)
 			Unopposed[ThisRace]++
-		results[ThisRace] = RaceSum + 0
 	}
 
 # output time!
