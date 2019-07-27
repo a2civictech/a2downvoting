@@ -90,20 +90,55 @@ NF != 2 {
 	votes[$1] += $2		# count the votes
 }
 
-END {
-	if (TotalBallotsCast != 0) {
-		print "Registered=Voters", TotalRegisteredVoters
+END {	# produce output in CSV format
 
-		if (TotalRegisteredVoters != 0)			# try not to divide by zero (county data is not perfect #alas)
-			printf("Ballots=Cast %d %2.1f%%\n", TotalBallotsCast, 100 * TotalBallotsCast / TotalRegisteredVoters)
-		else
-			print "Ballots=Cast", TotalBallotsCast, "0%"
-		fi
+	if (TotalBallotsCast != 0) {
+		print "Registered Voters" "," TotalRegisteredVoters
+		print "Ballots=Cast" "," TotalBallotsCast		# Ballots Cast is sometimes reported as  :shrug emoji:
 
 		for (i in votes) {
-			if (wards[i] == WardCount)	# city-wide races only
-				print i, votes[i]
+			if (wards[i] == WardCount) {	# city-wide races only
+				if (i == "Straight=Party@") {
+					print "Straight=Party" "," votes["Straight=Party@"]
+					continue;				# output this elsewhere
+				}
+				if (i ~ "@") {
+					printFunc(votes["Straight=Party@"])	# called w/ # of SP votes
+				} else {
+					printFunc(0)				# nonpartisan: no SP votes
+				}	
+			}
 		}
+
+	}
+}
+
+function printFunc (partyline) {
+	TotalHandCast = TotalBallotsCast - partyline
+	ThisRaceHandCast = votes[i] - partyline
+	if (partyline) {
+	printf("%s,%d,%d,%2.2f%%,%2.2f%%\n",
+		i,							# Race
+		votes[i],						# Vote Total
+		ThisRaceHandCast,					# Hand Cast
+		100*(TotalBallotsCast - votes[i]) / TotalBallotsCast,	# Dropoff
+		100*(TotalHandCast - ThisRaceHandCast) / TotalHandCast)	# Hand Cast Dropoff
+	} else {
+	printf("%s,%d,%d,%2.2f%%\n",
+		i,							# Race
+		votes[i],						# Vote Total
+		ThisRaceHandCast,					# Hand Cast
+		100*(TotalBallotsCast - votes[i]) / TotalBallotsCast)	# Total Dropoff
+	}
+}
+
+' | sort -t, -nr -k2 | sed -e 's/=/ /g' -e 's/@/ partisan/' -e 's/+/ unopposed/' | (echo "Race,Total,Hand Cast,Dropoff,HC Dropoff"; cat)
+
+exit
+
+
+
+# just gonna leave this here for a sec
 
 		# debugging.  if you make verbose non-zero, you probably want to temporarily get rid of the sort post-processing
 		if (verbose > 0) {
@@ -120,9 +155,3 @@ END {
 			for (i in RegisteredVoters)
 				print "Ward", i, RegisteredVoters[i]
 		}
-	}
-}
-
-' | sort -nr -k2 | sed -e 's/=/ /g' -e 's/@/ partisan/' -e 's/+/ unopposed/'
-
-exit
