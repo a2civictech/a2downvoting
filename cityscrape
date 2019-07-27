@@ -67,8 +67,6 @@ fi
 	wardscrape cachedir/$monyear/$file
 done | awk '
 
-
-
 NF == 13 {
 	Ward = $2; Precinct = $4; WPRegisteredVoters = $7; WPBallotsCast = $10; WPVoterTurnout=$13
 
