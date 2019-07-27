@@ -73,10 +73,10 @@ done |
 
 ### end scraping
 
-awk '
+awk -F, '
 
-NF == 13 {
-	Ward = $2; Precinct = $4; WPRegisteredVoters = $7; WPBallotsCast = $10; WPVoterTurnout=$13
+NF == 10 {
+	Ward = $2; Precinct = $4; WPRegisteredVoters = $6; WPBallotsCast = $8; WPVoterTurnout=$10
 
 	WardCount++
 	TotalRegisteredVoters += WPRegisteredVoters
@@ -85,7 +85,7 @@ NF == 13 {
 }
 
 NF != 2 {
-	print "cityscrape internal error: NF != 2 on line: " NF, $0, "Ward", Ward, "Precinct", Precinct
+	print "cityscrape internal error: NF is ", NF, "on line: " NF, $0
 	abort()			# abort is undefined so this will definitely cause an exceptional exit
 }
 

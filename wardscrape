@@ -10,7 +10,7 @@ NR == 4 { Ward = $6; Precinct = $8}
 NR == 7 {RegisteredVoters = $1}
 NR == 9 {BallotsCast = $1}
 NR == 11 {VoterTurnout = $1}
-NR == 13 {print "Ward", Ward, "Precinct", Precinct, "Registered Voters", RegisteredVoters, "Ballots Cast", BallotsCast, "Voter Turnout", VoterTurnout}
+NR == 13 {print "Ward," Ward ",Precinct," Precinct ",Registered Voters," RegisteredVoters ",Ballots Cast," BallotsCast ",Voter Turnout," VoterTurnout}
 
 NR < 13 {next}
 
@@ -87,6 +87,6 @@ END {				# clean up the final race (just like above, q.v. for comments)
 		}
 			
 
-		print race, results[i]
+		print race "," results[i]
 	}
 }'
