@@ -50,6 +50,7 @@ fi
 
 ### web scraping
 
+	echo wget -q -O cachedir/$monyear/indexprecinctreport.html https://electionresults.ewashtenaw.org/electionreporting/$monyear/index.jsp;exit
 if [ ! -s cachedir/$monyear/indexprecinctreport.html ]; then
 	wget -q -O cachedir/$monyear/indexprecinctreport.html https://electionresults.ewashtenaw.org/electionreporting/$monyear/indexprecinctreport.html
 	if [ $? != 0 ]; then
@@ -104,12 +105,12 @@ END {	# produce output in CSV format
 
 		for (i in votes) {
 			if (wards[i] == WardCount) {	# city-wide races only
-				if (i == "Straight=Party@") {
-					print "Straight=Party" "," votes["Straight=Party@"]
+				if (i == "Straight Party@") {
+					print "Straight Party" "," votes["Straight Party@"]
 					continue;
 				}
 				if (i ~ "@")
-					printFunc(votes["Straight=Party@"])	# called w/ # of SP votes
+					printFunc(votes["Straight Party@"])	# called w/ # of SP votes
 				else
 					printFunc(0)				# nonpartisan: no SP votes
 			}
@@ -137,6 +138,6 @@ function printFunc (partyline) {
 	}
 }
 
-' | sort -t, -nr -k2 | sed -e 's/=/ /g' -e 's/@/ partisan/' -e 's/+/ unopposed/' | (echo "Race,Total,Hand Cast,Dropoff,HC Dropoff"; cat)
+' | sort -t, -nr -k2 | sed -e 's/@/ partisan/' | (echo "Race,Total,Hand Cast,Dropoff,HC Dropoff"; cat)
 
 exit

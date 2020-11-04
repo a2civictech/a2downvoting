@@ -38,8 +38,8 @@ NR < 13 {next}
 		firstfield = 2
 
 	ThisRace = $firstfield
-	for (i = firstfield + 1; i <= NF-5; i++)	# last 5 fields are data, the rest are the name of the race. replace spaces with "=".
-		ThisRace = ThisRace "=" $i
+	for (i = firstfield + 1; i <= NF-5; i++)	# last 5 fields are data, the rest are the name of the race.
+		ThisRace = ThisRace " " $i
 	next
 }
 
