@@ -50,7 +50,6 @@ fi
 
 ### web scraping
 
-	echo wget -q -O cachedir/$monyear/indexprecinctreport.html https://electionresults.ewashtenaw.org/electionreporting/$monyear/index.jsp;exit
 if [ ! -s cachedir/$monyear/indexprecinctreport.html ]; then
 	wget -q -O cachedir/$monyear/indexprecinctreport.html https://electionresults.ewashtenaw.org/electionreporting/$monyear/indexprecinctreport.html
 	if [ $? != 0 ]; then
