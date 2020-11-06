@@ -49,9 +49,10 @@ if [ ! -d cachedir/$monyear ]; then
 fi
 
 ### web scraping
+WGET="wget -q --no-check-certificate"
 
 if [ ! -s cachedir/$monyear/indexprecinctreport.html ]; then
-	wget -q -O cachedir/$monyear/indexprecinctreport.html https://electionresults.ewashtenaw.org/electionreporting/$monyear/indexprecinctreport.html
+	$WGET -O cachedir/$monyear/indexprecinctreport.html https://electionresults.ewashtenaw.org/electionreporting/$monyear/indexprecinctreport.html
 	if [ $? != 0 ]; then
 		echo can\'t find $1 $2 election >&2
 		exit 1
@@ -62,7 +63,7 @@ fi
 
 	if [ ! -s cachedir/$monyear/$file ]; then
 		### TODO (?): if exit status is nonzero, some kind of internal error, so apologize and exit
-		wget -q -O cachedir/$monyear/$file https://electionresults.ewashtenaw.org/electionreporting/$monyear/$file
+		$WGET -O cachedir/$monyear/$file https://electionresults.ewashtenaw.org/electionreporting/$monyear/$file
 		if [ $? != 0 ]; then
 			echo cityscrape internal error: can\'t cache file for $1 $2 >&2
 			exit 1
