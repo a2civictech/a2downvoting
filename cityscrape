@@ -91,10 +91,19 @@ NF != 2 {
 }
 
 
+# NF == 2.  $1 is the name of the race, $2 is the number of votes.
 # total the votes from the wards
 {
-	wards[$1]++		# count the number of wards this races was seen in
-	votes[$1] += $2		# count the votes
+	# Straight Party votes are special, I mean, they are kind of the reason we are here
+	# But in 2020, they changed the name from "Straight Party" to "Straight Party Ticket" alas
+	# So we fix that here.
+
+	raceName = $1
+	if (raceName ~ "Straight Party Ticket@")
+		raceName = "Straight Party@"
+	
+	wards[raceName]++		# count the number of wards this races was seen in
+	votes[raceName] += $2		# count the votes
 }
 
 END {	# produce output in CSV format
@@ -119,6 +128,7 @@ END {	# produce output in CSV format
 	}
 }
 
+# if partyline != 0, this is a partisan race so calculate the hand cast dropoff and total dropoff
 function printFunc (partyline) {
 	TotalHandCast = TotalBallotsCast - partyline
 	ThisRaceHandCast = votes[i] - partyline
