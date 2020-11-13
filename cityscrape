@@ -88,6 +88,7 @@ NF == 10 {
 NF != 2 {
 	print "cityscrape internal error: NF is ", NF, "on line: " NF, $0
 	abort()			# abort is undefined so this will definitely cause an exceptional exit
+	exit -1			# just in case
 }
 
 
